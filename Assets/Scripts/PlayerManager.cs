@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class PlayerManager : MonoBehaviour {
+public class PlayerManager : MonoBehaviour
+{
     public GameObject gameManager;
 
     public LayerMask blockLayer;//ブロックレイヤー
@@ -13,7 +14,7 @@ public class PlayerManager : MonoBehaviour {
     private const float MOVE_SPEED = 3;//移動速度固定値
     private float moveSpeed;//移動速度
 
-    private float jumpPowerTime=0;//分岐時に使用するジャンプ力時間
+    private float jumpPowerTime = 0;//分岐時に使用するジャンプ力時間
     private float tmpJumpPowerTime = 0;//加算中のジャンプ力時間
     private float jumpPower = 400;//ジャンプ力
     private bool goJump = false;//ジャンプしたか否か
@@ -37,8 +38,8 @@ public class PlayerManager : MonoBehaviour {
     //7.3番目の攻撃時間中に攻撃キーを押した瞬間
     //8.3番目の攻撃時間中に攻撃キーを離した
     //何もしない
-    private int attackCount=0;//最初の攻撃キーを押してから最後の攻撃の終了まで増加する
-    private bool  onAttackCount;//攻撃カウント中か否か
+    private int attackCount = 0;//最初の攻撃キーを押してから最後の攻撃の終了まで増加する
+    private bool onAttackCount;//攻撃カウント中か否か
 
     private int attackNum = 0;//現在の攻撃回数
     private const int ATTACK_NUM_MAX = 3;//攻撃回数の上限値
@@ -47,7 +48,7 @@ public class PlayerManager : MonoBehaviour {
     //0.Cキーが押されていない
     //1.Cキーが押された瞬間
     //2.Cキーが放された
-    
+
     private bool stop = false;//ストップしているかどうか
     private Animator animator;  //アニメーター
     public enum MOVE_DIR
@@ -65,6 +66,8 @@ public class PlayerManager : MonoBehaviour {
     public AudioClip stampSE;
 
     private AudioSource audioSource;
+
+    private GameObject touchedOrb;  // 最後に触ったオーブ 初期値は null
 
     void Start()
     {
@@ -95,7 +98,7 @@ public class PlayerManager : MonoBehaviour {
             Physics2D.Linecast(transform.position + (transform.right * 0.3f),
             transform.position - (transform.up * 0.1f), blockLayer);
 
-        animator.SetBool("onGround" , canJump);
+        animator.SetBool("onGround", canJump);
         //ストップしているかどうか（アニメーションに影響）
         if (moveDirection == MOVE_DIR.STOP)
         {
@@ -123,6 +126,7 @@ public class PlayerManager : MonoBehaviour {
             onAttackCount = true;
         }
 
+        // TODO: attackCount increases not constantly
         if (onAttackCount)//攻撃カウントを増加
         {
             attackCount++;
@@ -130,44 +134,49 @@ public class PlayerManager : MonoBehaviour {
 
         if (0 < attackCount && attackCount < 60)//時間内に
         {
+            // 1フレームしか取得しないからattackNum = 1にしかならないのでは？
             if (oneFrameCKey)
             {
                 if (attackNum < 3)
                 {
                     attackNum++;
                 }
-               
+
             }
+
             if (0 < attackCount && attackCount < 20)
             {
                 Debug.Log("stateAttack==1");
-            }else if(20 <= attackCount && attackCount < 40)
+            }
+            else if (20 <= attackCount && attackCount < 40)
             {
                 if (attackNum == 2 || attackNum == 3)
                 {
                     Debug.Log("stateAttack==2");
                 }
 
-            }else if(40 <= attackCount && attackCount < 60)
+            }
+            else if (40 <= attackCount && attackCount < 60)
             {
                 if (attackNum == 3)
                 {
                     Debug.Log("stateAttack==3");
                 }
             }
+            
             //アニメーション用
-            if (attackNum == 1&&0<attackCount&&attackCount<20)
+            if (attackNum == 1 && 0 < attackCount && attackCount < 20)
             {
-                
+
             }
             if (attackNum == 2 && 20 <= attackCount && attackCount < 40)
             {
 
-               
+
             }
             if (attackNum == 3 && 40 <= attackCount && attackCount < 60)
             {
-                
+
             }
             else
             {
@@ -187,15 +196,15 @@ public class PlayerManager : MonoBehaviour {
     }
     void FixedUpdate()
     {
-       
-        //moveDirictionの値によって速度を設定
+
+        //moveDirectionの値によって速度を設定
         switch (moveDirection)
         {
             case MOVE_DIR.STOP:
                 moveSpeed = 0;
                 break;
             case MOVE_DIR.LEFT:
-                moveSpeed = MOVE_SPEED*-1;
+                moveSpeed = MOVE_SPEED * -1;
                 transform.localScale = new Vector2(1, 1);
                 break;
             case MOVE_DIR.RIGHT:
@@ -204,55 +213,53 @@ public class PlayerManager : MonoBehaviour {
                 break;
         }
         rbody.velocity = new Vector2(moveSpeed, rbody.velocity.y);
-        
+
         //通常では重力は2
         rbody.gravityScale = 2f;
 
-        if (Input.GetKey(KeyCode.Space)){
+        if (Input.GetKey(KeyCode.Space))
+        {
             jumpCount++;
-        }else
+        }
+        else
         {
             jumpCount = 0;
         }
         //ジャンプボタンを押したときの処理
         if (stateJump == 0)
         {
-            if (jumpCount==1)
+            if (jumpCount == 1)
             {
                 stateJump = 1;
             }
         }
-        else if (1<jumpCount&& stateJump == 2)
+        else if (stateJump == 2 && jumpCount > 1)
         {
             //空中にいて
             //スペースキーを押しているときは何もしない
             stateJump = 3;
         }
-        else if (jumpCount==0&& stateJump == 3&&rbody.velocity.y>0)
+        else if (stateJump == 3 && jumpCount == 0 && rbody.velocity.y > 0)
         {
             //空中にいて
             //スペースキーを離したときは
             rbody.gravityScale = 5.0f;
-        }else
+        }
+        else
         {
-            
             //何もしない
         }
         //ジャンプ処理
-
-        if (stateJump==1)
+        if (stateJump == 1)
         {
             audioSource.PlayOneShot(jumpSE);
             rbody.AddForce(Vector2.up * jumpPower);
             stateJump = 2;
         }
-
-
-
-
     }
+
     //衝突処理
-    void OnTriggerEnter2D (Collider2D col)
+    void OnTriggerEnter2D(Collider2D col)
     {
         if (gameManager.GetComponent<GameManager>().gameMode != GameManager.GAME_MODE.PLAY)
         {
@@ -276,7 +283,8 @@ public class PlayerManager : MonoBehaviour {
                 rbody.velocity = new Vector2(rbody.velocity.x, 0);
                 rbody.AddForce(Vector2.up * jumpPower);
                 col.gameObject.GetComponent<EnemyManager>().DestroyEnemy();
-            }else
+            }
+            else
             {
                 gameManager.GetComponent<GameManager>().GameOver();
                 DestroyPlayer();
@@ -285,10 +293,16 @@ public class PlayerManager : MonoBehaviour {
 
         if (col.gameObject.tag == "Orb")
         {
-            audioSource.PlayOneShot(getSE);
-            col.gameObject.GetComponent<OrbManager>().GetOrb();
+            // スコア二重取得回避:もし最後に触ったOrbと今触ったOrbが重複してなかったら
+            if (col.gameObject != touchedOrb)
+            {
+                touchedOrb = col.gameObject;
+                audioSource.PlayOneShot(getSE);
+                col.gameObject.GetComponent<OrbManager>().GetOrb();
+            }
         }
     }
+
     //プレイヤーオブジェクト削除処理
     void DestroyPlayer()
     {
@@ -302,7 +316,7 @@ public class PlayerManager : MonoBehaviour {
         Sequence animSet = DOTween.Sequence();
         animSet.Append(transform.DOLocalMoveY(1.0f, 0.2f).SetRelative());
         animSet.Append(transform.DOLocalMoveY(-10.0f, 1.0f).SetRelative());
-        Destroy(this.gameObject,1.2f);
+        Destroy(this.gameObject, 1.2f);
     }
 
     public void PushLeftButton()
@@ -334,8 +348,9 @@ public class PlayerManager : MonoBehaviour {
 
         if (Input.GetKey(KeyCode.Space))
         {
-             tmpJumpPowerTime+= Time.deltaTime;
-        }else
+            tmpJumpPowerTime += Time.deltaTime;
+        }
+        else
         {
             jumpPowerTime = tmpJumpPowerTime;
         }
