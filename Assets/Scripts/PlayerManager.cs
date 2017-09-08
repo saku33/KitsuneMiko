@@ -131,10 +131,9 @@ public class PlayerManager : MonoBehaviour
         {
             attackCount++;
         }
-
+        
         if (0 < attackCount && attackCount < 60)//時間内に
         {
-            // 1フレームしか取得しないからattackNum = 1にしかならないのでは？
             if (oneFrameCKey)
             {
                 if (attackNum < 3)
@@ -143,7 +142,7 @@ public class PlayerManager : MonoBehaviour
                 }
 
             }
-
+        
             if (0 < attackCount && attackCount < 20)
             {
                 Debug.Log("stateAttack==1");
