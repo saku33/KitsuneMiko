@@ -152,6 +152,9 @@ public class PlayerManager : MonoBehaviour
             }
             //third attack registration
             else if (finishedAttackNum == 2 && nextAttackNum == 3 && !isKeyRegistered)
+            {
+                
+            }
         }
 
         //second attack implementation
