@@ -17,11 +17,11 @@ public class Timer : MonoBehaviour
     /// </summary>
     public float ElapsedTime
     {
-        internal get
+        get
         {
             return integratedTime;
         }
-        set
+        private set
         {
             this.integratedTime = value;
         }
@@ -32,11 +32,11 @@ public class Timer : MonoBehaviour
     /// </summary>
     public uint Frames
     {
-        internal get
+        get
         {
             return integratedFrames;
         }
-        set
+        private set
         {
             this.integratedFrames = value;
         }
