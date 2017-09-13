@@ -69,11 +69,21 @@ public class PlayerManager : MonoBehaviour
 
     private GameObject touchedOrb;  // 最後に触ったオーブ 初期値は null
 
+    // timer that holds animation playtime
     private Timer timer;
-    private bool isKeyReceiving = true;
-    private bool isKeyRegistered = false;
+    // flag that enables player to input attack key
+    private bool isAttackKeyReceiving = true;
+    // if next attack is registered or not
+    private bool isNextAttackRegistered = false;
+    // counts of finished animations
     private int finishedAttackNum = 0;
-    private int nextAttackNum = 0;
+    // number of next attack
+    private int nextAttackNum = 1;
+    private enum AttackNumber : int
+    {
+        Idle = 0, First, Second, Third, Fourth, Reset
+    }
+    private int[] AttackAnimationDuration = new int[4] { 6, 6, 6, 6 };
 
     void Start()
     {
@@ -125,155 +135,60 @@ public class PlayerManager : MonoBehaviour
             stateJump = 0;
         }
 
-        bool oneFrameCKey = false;
-        if (isKeyReceiving)
-        {
-            oneFrameCKey = Input.GetKeyDown(KeyCode.C);//GetKeyDownはキーを1フレームだけ取得する
-        }
+        bool isAttackKeyPressed = isAttackKeyReceiving ? Input.GetKeyDown(KeyCode.C) : false;
 
-        if (oneFrameCKey)
+        // Attack Registration
+        if (isAttackKeyPressed && !isNextAttackRegistered)
         {
-            // first attack implementation
-            if (finishedAttackNum == 0 && nextAttackNum == 0)
+            // 1st attack registration and implementation
+            if (finishedAttackNum == (int)AttackNumber.Idle && nextAttackNum == (int)AttackNumber.First)
             {
-                timer.Begin();
                 animator.SetTrigger("attack");
-                nextAttackNum = 2;
-                Debug.Log((finishedAttackNum + 1) + " attack animation implemented");
+                timer.Begin();
+                nextAttackNum = (int)AttackNumber.Second;
+                Debug.Log("1 attack animation implemented");
             }
-            //second attack registration
-            else if (finishedAttackNum == 0 && nextAttackNum == 2 && !isKeyRegistered)
+            // 2nd to 4th attack registration
+            else if ((int)AttackNumber.Second <= nextAttackNum && nextAttackNum <= (int)AttackNumber.Fourth)
             {
-                //key input is within the combo time
-                if (timer.ElapsedTime * 12f < 6f)
+                if (timer.ElapsedTime * 12f < AttackAnimationDuration[nextAttackNum - 2])
                 {
-                    isKeyReceiving = false;
-                    isKeyRegistered = true;
-                }
-            }
-            //third attack registration
-            else if (finishedAttackNum == 1 && nextAttackNum == 3 && !isKeyRegistered)
-            {
-                if (timer.ElapsedTime * 12f < 6f)
-                {
-                    isKeyReceiving = false;
-                    isKeyRegistered = true;
-                }
-            }
-            //fourth attack registration
-            else if (finishedAttackNum == 2 && nextAttackNum == 4 && !isKeyRegistered)
-            {
-                if (timer.ElapsedTime * 12f < 6f)
-                {
-                    isKeyReceiving = false;
-                    isKeyRegistered = true;
+                    isAttackKeyReceiving = false;
+                    isNextAttackRegistered = true;
                 }
             }
         }
 
-        // Attack Implementation (n=>2)
-        if (timer.ElapsedTime * 12f > 6f && 0 < nextAttackNum && nextAttackNum < 5)
+        // Attack Implementation
+        if (1 < nextAttackNum && nextAttackNum < 5 && timer.ElapsedTime * 12f > AttackAnimationDuration[nextAttackNum - 2])
         {
-            if (isKeyRegistered)
+            if (isNextAttackRegistered)
             {
                 // implement next attack if next attack was already registered
                 finishedAttackNum += 1;
                 nextAttackNum += 1;
-                timer.Begin(true);
+                timer.Begin();
                 animator.SetTrigger("attack");
-                isKeyReceiving = true;
-                isKeyRegistered = false;
+                isAttackKeyReceiving = true;
+                isNextAttackRegistered = false;
                 Debug.Log((finishedAttackNum + 1) + " attack animation implemented");
             }
             else
             {
                 // implement sleep procedure to set up some settings
-                finishedAttackNum = 3;
-                nextAttackNum = 5;
-                timer.Begin(true);
-                isKeyReceiving = false;
-                isKeyRegistered = false;
-                Debug.Log("RESET");
-            }
-        }
-
-        /* LEGACY
-        //when first attack animation finished
-        if (finishedAttackNum == 0 && nextAttackNum == 2 && timer.ElapsedTime * 12f > 6f)
-        {
-            //second attack implementation
-            if (isKeyRegistered)
-            {
-                finishedAttackNum = 1;
-                nextAttackNum = 3;
-                timer.Begin(true);
-                animator.SetTrigger("attack");
-                isKeyReceiving = true;
-                isKeyRegistered = false;
-                Debug.Log("Implemented second attack");
-            }
-            else
-            {
-                finishedAttackNum = 3;
-                timer.Stop();
-                nextAttackNum = 5;
-                isKeyReceiving = true;
-                isKeyRegistered = false;
-            }
-        }
-        //when second attack animation finished
-        if (finishedAttackNum == 1 && nextAttackNum == 3 && timer.ElapsedTime * 12f > 6f)
-        {
-            if (isKeyRegistered)
-            {
-                finishedAttackNum = 2;
-                nextAttackNum = 4;
-                timer.Begin(true);
-                animator.SetTrigger("attack");
-                isKeyReceiving = true;
-                isKeyRegistered = false;
-                Debug.Log("Implemented third attack");
-            }
-            else
-            {
-                finishedAttackNum = 3;
-                timer.Stop();
-                nextAttackNum = 5;
-                isKeyReceiving = true;
-                isKeyRegistered = false;
-            }
-        }
-        //when third attack animation finished
-        if (finishedAttackNum == 2 && nextAttackNum == 4 && timer.ElapsedTime * 12f > 6f)
-        {
-            if(isKeyRegistered)
-            {
-                finishedAttackNum = 3;
+                nextAttackNum = (int)AttackNumber.Reset;
                 timer.Begin();
-                animator.SetTrigger("attack");
-                Debug.Log("Implemented fourth attack");
-                nextAttackNum = 5;
-                isKeyReceiving = false;
-                isKeyRegistered = false;
-            }
-            else
-            {
-                finishedAttackNum = 3;
-                timer.Stop();
-                nextAttackNum = 5;
-                isKeyReceiving = true;
-                isKeyRegistered = false;
+                isAttackKeyReceiving = false;
+                isNextAttackRegistered = false;
             }
         }
-        */
 
         //when fourth attack animation finished
-        if (finishedAttackNum == 3 && nextAttackNum == 5 && timer.ElapsedTime * 12f > 6f)
+        if (nextAttackNum == (int)AttackNumber.Reset && timer.ElapsedTime * 12f > 6f * 1.5f)
         {
-            isKeyReceiving = true;
+            isAttackKeyReceiving = true;
             finishedAttackNum = 0;
-            nextAttackNum = 0;
-            Debug.Log("RESET COMPLETED");
+            nextAttackNum = 1;
         }
     }
 
