@@ -70,6 +70,10 @@ public class PlayerManager : MonoBehaviour
     private GameObject touchedOrb;  // 最後に触ったオーブ 初期値は null
 
     private Timer timer;
+    private bool isKeyReceiving = true;
+    private bool isKeyRegistered = false;
+    private int finishedAttackNum = 0;
+    private int nextAttackNum = 0;
 
     void Start()
     {
@@ -77,15 +81,10 @@ public class PlayerManager : MonoBehaviour
         rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         timer = gameObject.GetComponent<Timer>();
-        timer.Begin();
     }
     void Update()
     {
-        Debug.Log(timer.ElapsedTime);
-        if (timer.ElapsedTime > 10)
-        {
-            timer.Stop();
-        }
+
         //押しているボタンで分岐
         if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -126,20 +125,48 @@ public class PlayerManager : MonoBehaviour
             stateJump = 0;
         }
 
-        bool oneFrameCKey = Input.GetKeyDown(KeyCode.C);//GetKeyDownはキーを1フレームだけ取得する
-        
-        //一回目の攻撃の時は素直に攻撃実行
-        if (oneFrameCKey && attackCount == 0)
+        bool oneFrameCKey = false;
+        if (isKeyReceiving)
         {
-            timer.Begin();
-        }
-        //一回目の攻撃が終わり、コンボ判定の時間内であるのならば
-        if (oneFrameCKey && timer.ElapsedTime)
-        {
-
+            oneFrameCKey = Input.GetKeyDown(KeyCode.C);//GetKeyDownはキーを1フレームだけ取得する
         }
 
+        if (oneFrameCKey)
+        {
+            // first attack implementation
+            if (finishedAttackNum == 0 && nextAttackNum == 0)
+            {
+                timer.Begin();
+                animator.SetTrigger("attack");
+                finishedAttackNum = 1;
+                nextAttackNum = 2;
+            }
+            //second attack registration
+            else if (finishedAttackNum == 1 && nextAttackNum == 2 && !isKeyRegistered)
+            {
+                if (timer.ElapsedTime * 12f < 6f)
+                {
+                    isKeyReceiving = false;
+                    isKeyRegistered = true;
+                }
+            }
+            //third attack registration
+            else if (finishedAttackNum == 2 && nextAttackNum == 3 && !isKeyRegistered)
+        }
+
+        //second attack implementation
+        if (finishedAttackNum == 1 && nextAttackNum == 2 && isKeyRegistered)
+        {
+            //when first attack finished
+            if (timer.ElapsedTime * 12f > 6f)
+            {
+                animator.SetTrigger("attack");
+                finishedAttackNum = 2;
+                nextAttackNum = 3;
+            }
+        }
     }
+
     void FixedUpdate()
     {
 
