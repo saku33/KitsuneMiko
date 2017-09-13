@@ -69,14 +69,23 @@ public class PlayerManager : MonoBehaviour
 
     private GameObject touchedOrb;  // 最後に触ったオーブ 初期値は null
 
+    private Timer timer;
+
     void Start()
     {
         audioSource = gameManager.GetComponent<AudioSource>();
         rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        timer = gameObject.GetComponent<Timer>();
+        timer.Begin();
     }
     void Update()
     {
+        Debug.Log(timer.ElapsedTime);
+        if (timer.ElapsedTime > 10)
+        {
+            timer.Stop();
+        }
         //押しているボタンで分岐
         if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -117,80 +126,18 @@ public class PlayerManager : MonoBehaviour
             stateJump = 0;
         }
 
-
         bool oneFrameCKey = Input.GetKeyDown(KeyCode.C);//GetKeyDownはキーを1フレームだけ取得する
-
-
-        if (oneFrameCKey)//攻撃キーを押したときに攻撃カウントフラグをオン
-        {
-            onAttackCount = true;
-        }
-
-        // TODO: attackCount increases not constantly
-        if (onAttackCount)//攻撃カウントを増加
-        {
-            attackCount++;
-        }
         
-        if (0 < attackCount && attackCount < 60)//時間内に
+        //一回目の攻撃の時は素直に攻撃実行
+        if (oneFrameCKey && attackCount == 0)
         {
-            if (oneFrameCKey)
-            {
-                if (attackNum < 3)
-                {
-                    attackNum++;
-                }
-
-            }
-        
-            if (0 < attackCount && attackCount < 20)
-            {
-                Debug.Log("stateAttack==1");
-            }
-            else if (20 <= attackCount && attackCount < 40)
-            {
-                if (attackNum == 2 || attackNum == 3)
-                {
-                    Debug.Log("stateAttack==2");
-                }
-
-            }
-            else if (40 <= attackCount && attackCount < 60)
-            {
-                if (attackNum == 3)
-                {
-                    Debug.Log("stateAttack==3");
-                }
-            }
-            
-            //アニメーション用
-            if (attackNum == 1 && 0 < attackCount && attackCount < 20)
-            {
-
-            }
-            if (attackNum == 2 && 20 <= attackCount && attackCount < 40)
-            {
-
-
-            }
-            if (attackNum == 3 && 40 <= attackCount && attackCount < 60)
-            {
-
-            }
-            else
-            {
-                //何もしない
-            }
+            timer.Begin();
         }
-        else
+        //一回目の攻撃が終わり、コンボ判定の時間内であるのならば
+        if (oneFrameCKey && timer.ElapsedTime)
         {
-            attackNum = 0;
-            attackCount = 0;
-            onAttackCount = false;
+
         }
-
-
-
 
     }
     void FixedUpdate()
