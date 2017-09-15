@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Breakable : MonoBehaviour {
-	protected static Dictionary<string, List<string>> DAMAGE_TAGS
+	protected static readonly Dictionary<string, List<string>> DAMAGE_TAGS
 		= new Dictionary<string, List<string>> {
 			{"AllyBreakable", new List<string> {"Enemy", "Neutral"}},
 			{"Enemy", new List<string> {"AllyDamage", "Neutral"}},
