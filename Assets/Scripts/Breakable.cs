@@ -11,10 +11,10 @@ public class Breakable : MonoBehaviour {
 			{"Invincible", new List<string> {}}
 		};
 
-	public int maxHitPoint;
+	public float maxHitPoint;
 
 	[System.NonSerialized]
-	public int hitPoint;
+	public float hitPoint;
 
 	protected virtual void Start () {
 		hitPoint = maxHitPoint;
