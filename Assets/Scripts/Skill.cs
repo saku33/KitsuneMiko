@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Skill : MonoBehaviour {
-	public float cost;
+    public float cost;
 
-	protected virtual void Awake () {
-		enabled = false;
-	}
+    protected virtual void Awake () {
+        enabled = false;
+    }
 
-	protected abstract void OnEnable ();
-	protected abstract void OnDisable ();
+    protected abstract void OnEnable ();
+    protected abstract void OnDisable ();
 }

@@ -3,5 +3,5 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Damage : MonoBehaviour {
-	public float attackPoint;
+    public float attackPoint;
 }
