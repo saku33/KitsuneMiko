@@ -9,6 +9,7 @@ public class SkillManager : MonoBehaviour {
 
     Skill[] skillSlots = new Skill[3];
     bool isActive = false;
+    float totalCost;
 
     void Start () {
         // 空Skillをセット
@@ -16,9 +17,7 @@ public class SkillManager : MonoBehaviour {
 
     void FixedUpdate () {
         if (isActive) {
-            foreach (Skill skill in skillSlots) {
-                mugicPoint -= skill.cost;
-            }
+            mugicPoint -= totalCost;
             if (mugicPoint <= 0) {
                 Deactivate();
                 mugicPoint = 0.0f;
@@ -33,17 +32,29 @@ public class SkillManager : MonoBehaviour {
         }
     }
 
-    public void ReplaceSkill (int num, string name) {
+    void _ReplaceSkill (int num, string name) {
         System.Type skillType = System.Type.GetType(name);
         Destroy(skillSlots[num]);
         skillSlots[num] = gameObject.AddComponent(skillType) as Skill;
         skillSlots[num].enabled = isActive;
     }
 
+    void UpdateTotalCost () {
+        foreach (Skill skill in skillSlots) {
+            totalCost += skill.cost;
+        }
+    }
+
+    public void ReplaceSkill (int num, string name) {
+        _ReplaceSkill(num, name);
+        UpdateTotalCost();
+    }
+
     public void ReplaceSkills (string[] names) {
         for (int i = 0; i < 3; i++) {
-            ReplaceSkill(i, names[i]);
+            _ReplaceSkill(i, names[i]);
         }
+        UpdateTotalCost();
     }
 
     public void Activate () {

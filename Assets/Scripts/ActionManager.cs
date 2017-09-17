@@ -30,11 +30,11 @@ public class ActionManager : MonoBehaviour {
 
     protected virtual Action SelectRandom (List<Action> actions) {
         Action selectedAction = actions[actions.Count - 1];
-        int weightSum = 0;
+        int totalWeight = 0;
         foreach (Action action in actions) {
-            weightSum += action.weight;
+            totalWeight += action.weight;
         }
-        float rnd = Random.value * weightSum;
+        float rnd = Random.value * totalWeight;
         foreach (Action action in actions) {
             rnd -= action.weight;
             if (rnd <= 0) {

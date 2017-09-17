@@ -16,7 +16,7 @@ public class Breakable : MonoBehaviour {
     [System.NonSerialized]
     public float hitPoint;
 
-    protected virtual void Start () {
+    protected virtual void Awake () {
         hitPoint = maxHitPoint;
     }
 

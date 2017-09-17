@@ -11,7 +11,7 @@ public abstract class Action : MonoBehaviour {
     public readonly List<Action> blockedActions = new List<Action>();
 
     public virtual bool IsRequired () {
-        return not ? !condition.check() : condition.check();
+        return not ? !condition.Check() : condition.Check();
     }
 
     public abstract bool IsDone ();
