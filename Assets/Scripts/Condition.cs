@@ -5,5 +5,10 @@ using UnityEngine;
 public abstract class Condition : MonoBehaviour {
     public string conditionName;
 
-    public abstract bool Check ();
+    public abstract ConditionState Check ();
+}
+
+public struct ConditionState {
+    public bool isSatisfied;
+    public Dictionary<string, object> args;
 }

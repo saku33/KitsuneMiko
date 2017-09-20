@@ -73,7 +73,7 @@ public class ActionManager : MonoBehaviour {
     }
 
     protected virtual void DoAction (ActionConfig action) {
-        action.action.Act();
+        action.Act();
         if (!doingActions.Contains(action)) {
             doingActions.Add(action);
             blockActionTypes.AddRange(action.blockActionTypes);
@@ -141,6 +141,8 @@ public class ActionConfig {
     [System.NonSerialized]
     public System.Type[] blockActionTypes;
 
+    protected Dictionary<string, object> args = new Dictionary<string, object>();
+
     public ActionConfig (
             string actionName, int order, int weight,
             Dictionary<string, bool> conditions, string[] blockActions
@@ -175,7 +177,19 @@ public class ActionConfig {
     }
 
     public virtual bool IsAvailable () {
-        return conditions.All(
-            elm => elm.not ? !elm.condition.Check() : elm.condition.Check());
+        args.Clear();
+        ConditionState state;
+        foreach (ConditionConfig condition in conditions) {
+            state = condition.condition.Check();
+            if (condition.not ? state.isSatisfied : !state.isSatisfied) {
+                return false;
+            }
+            args = args.Union(state.args).ToDictionary(elm => elm.Key, elm => elm.Value);
+        }
+        return true;
+    }
+
+    public virtual void Act () {
+        action.Act(args);
     }
 }
