@@ -3,14 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// TODO
+// * 現在のBlockActionsはそのActionがBlockするActionを設定するが，
+//   その逆のActionがどのActionにBlockされるかを設定するように変更する
+
+// Info
+// * 現在Listで書かれているものの一部はhashsetに変更する可能性がある
+// * 処理速度に問題があれば(Add|Remove)ActionsでSortActionsを呼ぶのをやめ，
+//   actionConfigsを変更せずに直接orderedActionsを設定するように変更する可能性がある
+
 public class ActionManager : MonoBehaviour {
+
+    // 各Actionの設定のリスト
+    // * InspectorやAddActionsメソッドによって設定される
     public List<ActionConfig> actionConfigs;
 
-    protected List<ActionConfig> doingActions = new List<ActionConfig>();
-    protected List<System.Type> blockActionTypes = new List<System.Type>();
+    // 順序化されたActionConfig
+    // * ActionConfigのorderをDictionaryのKeyとし，
+    //   同じorderのものはリストにまとめられる
+    // * actionConfigsを変更した際に更新される
     protected SortedDictionary<int, List<ActionConfig>> orderedActions
         = new SortedDictionary<int, List<ActionConfig>>();
 
+    // 現在実行中のActionConfigのリスト
+    // * ActionConfigはAction.Actを呼ぶ際にdoingActionsに追加される
+    // * doingActions内のActionConfigはFixedUpdateのはじめにAction.IsDoneが
+    //   呼ばれ，trueだった場合はリストから削除される
+    protected List<ActionConfig> doingActions = new List<ActionConfig>();
+
+    // 仕様変更予定
+    protected List<System.Type> blockActionTypes = new List<System.Type>();
+
+    // * actionConfigsの初期化処理
+    // * orderedActionsの更新
     protected virtual void Start () {
         foreach (ActionConfig action in actionConfigs) {
             action.Init(this);
@@ -18,6 +43,8 @@ public class ActionManager : MonoBehaviour {
         SortActions();
     }
 
+    // orderedActionsを更新するメソッド
+    // * actionConfigsを参照し，orderをKeyとして辞書化してorderedActionsに入れる
     protected virtual void SortActions () {
         orderedActions.Clear();
         foreach (ActionConfig action in actionConfigs) {
@@ -30,6 +57,9 @@ public class ActionManager : MonoBehaviour {
         }
     }
 
+    // ActionConfigを追加するためのメソッド
+    // * 追加されるActionConfigを初期化
+    // * 追加後はorderedActionsを更新する
     public virtual void AddActions (ActionConfig[] actions) {
         foreach (ActionConfig action in actions) {
             action.Init(this);
@@ -38,11 +68,22 @@ public class ActionManager : MonoBehaviour {
         SortActions();
     }
 
+    // ActionConfigを追加するためのメソッド
+    // * 引数は削除されるactionConfigを指定する
+    // * 削除後はorderedActionsを更新する
     public virtual void RemoveActions (ActionConfig[] actions) {
         actionConfigs.RemoveAll(action => actions.Contains(action));
         SortActions();
     }
 
+    // 渡されたActionConfigのリストから実行不可のものを取り除くメソッド
+    // * 以下のものを取り除く
+    //   - Action.enabled == false なもの
+    //   - BlockActionsに指定されているもの（変更予定）
+    //   - ActionConfig.IsAvailable == false なもの
+    // * TODO
+    //   + コードが汚いためLinqなどで書き直す
+    //   + BlockActionsの仕様変更
     protected virtual List<ActionConfig> RemoveNeedless (List<ActionConfig> actions) {
         List<ActionConfig> availableActions = new List<ActionConfig>();
         foreach (ActionConfig action in actions) {
@@ -57,6 +98,7 @@ public class ActionManager : MonoBehaviour {
         return availableActions;
     }
 
+    // リストからActionConfig.weightの重みで確率的にActionConfigを選択するメソッド
     protected virtual ActionConfig SelectRandom (List<ActionConfig> actions) {
         ActionConfig selectedAction = actions[actions.Count - 1];
         int totalWeight = 0;
@@ -73,6 +115,8 @@ public class ActionManager : MonoBehaviour {
         return selectedAction;
     }
 
+    // ActionConfigのActionを実行するためのメソッド
+    // * doingActionsとblockActionTypesに追加する（仕様変更予定）
     protected virtual void DoAction (ActionConfig action) {
         action.Act();
         if (!doingActions.Contains(action)) {
@@ -81,6 +125,9 @@ public class ActionManager : MonoBehaviour {
         }
     }
 
+    // doingActionsとblockActionTypesの更新を行うためのメソッド
+    // * 各doingActionsのAction.IsDoneを調べて，trueなら削除する
+    // * 各doingActionsによってblockActionTypesを更新する（仕様変更予定）
     protected virtual void UpdateBlock () {
         blockActionTypes.Clear();
         for (int i = doingActions.Count - 1; i >= 0; i--) {
@@ -92,6 +139,11 @@ public class ActionManager : MonoBehaviour {
         }
     }
 
+    // 1. doingActionsとblockActionsの更新
+    // 2. 各orderのorderedActionsについて，order順に以下を実行
+    //    1) 実行不可なActionConfigを除去
+    //    2) 残ったActionConfigが複数あれば確率的に選択
+    //    3) ActionConfigのActionを実行
     protected virtual void FixedUpdate () {
         UpdateBlock();
         foreach (List<ActionConfig> actions in orderedActions.Values) {
