@@ -32,10 +32,9 @@ public class SkillManager : MonoBehaviour {
         }
     }
 
-    void _ReplaceSkill (int num, string name) {
-        System.Type skillType = System.Type.GetType(name);
+    void _ReplaceSkill (int num, System.Type type) {
         Destroy(skillSlots[num]);
-        skillSlots[num] = gameObject.AddComponent(skillType) as Skill;
+        skillSlots[num] = gameObject.AddComponent(type) as Skill;
         skillSlots[num].enabled = isActive;
     }
 
@@ -45,14 +44,14 @@ public class SkillManager : MonoBehaviour {
         }
     }
 
-    public void ReplaceSkill (int num, string name) {
-        _ReplaceSkill(num, name);
+    public void ReplaceSkill (int num, System.Type type) {
+        _ReplaceSkill(num, type);
         UpdateTotalCost();
     }
 
-    public void ReplaceSkills (string[] names) {
+    public void ReplaceSkills (System.Type[] types) {
         for (int i = 0; i < 3; i++) {
-            _ReplaceSkill(i, names[i]);
+            _ReplaceSkill(i, types[i]);
         }
         UpdateTotalCost();
     }

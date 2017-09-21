@@ -20,7 +20,4 @@ public abstract class Skill : MonoBehaviour {
     protected virtual void Awake () {
         enabled = false;
     }
-
-    protected abstract void OnEnable ();
-    protected abstract void OnDisable ();
 }
