@@ -8,7 +8,7 @@ public abstract class Condition : MonoBehaviour {
     public abstract ConditionState Check ();
 }
 
-public struct ConditionState {
+public class ConditionState {
     public bool isSatisfied;
-    public Dictionary<string, object> args;
+    public Dictionary<string, object> args = new Dictionary<string, object>();
 }

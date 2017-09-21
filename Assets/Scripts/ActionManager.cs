@@ -15,6 +15,7 @@ public class ActionManager : MonoBehaviour {
         foreach (ActionConfig action in actionConfigs) {
             action.Init(this);
         }
+        SortActions();
     }
 
     protected virtual void SortActions () {
