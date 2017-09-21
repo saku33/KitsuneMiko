@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SkillManager : MonoBehaviour {
     public float maxMagicPoint = 100.0f;
-    public float mugicPoint = 100.0f;
+    public float magicPoint = 100.0f;
     public float recoveryAmount = 1.0f;
 
     Skill[] skillSlots = new Skill[3];
@@ -17,16 +17,16 @@ public class SkillManager : MonoBehaviour {
 
     void FixedUpdate () {
         if (isActive) {
-            mugicPoint -= totalCost;
-            if (mugicPoint <= 0) {
+            magicPoint -= totalCost;
+            if (magicPoint <= 0) {
                 Deactivate();
-                mugicPoint = 0.0f;
+                magicPoint = 0.0f;
             }
         } else {
-            if (mugicPoint < maxMagicPoint) {
-                mugicPoint += recoveryAmount;
-                if (mugicPoint > maxMagicPoint) {
-                    mugicPoint = maxMagicPoint;
+            if (magicPoint < maxMagicPoint) {
+                magicPoint += recoveryAmount;
+                if (magicPoint > maxMagicPoint) {
+                    magicPoint = maxMagicPoint;
                 }
             }
         }
