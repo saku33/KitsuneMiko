@@ -12,6 +12,7 @@ public class Breakable : MonoBehaviour {
         };
 
     public float maxHitPoint;
+    public float defencePoint = 1.0f;
 
     [System.NonSerialized]
     public float hitPoint;
@@ -30,7 +31,7 @@ public class Breakable : MonoBehaviour {
         if (DAMAGE_TAGS[tag].Contains(col.gameObject.tag)) {
             Damage damage = col.gameObject.GetComponent<Damage>();
             if (damage != null) {
-                hitPoint -= damage.attackPoint;
+                hitPoint -= defencePoint * damage.attackPoint;
             }
         }
     }
