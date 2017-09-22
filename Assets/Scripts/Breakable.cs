@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum LAYER {
+    ALLY_BREAKABLE = 8,
+    ALLY_DAMAGE,
+    ENEMY,
+    NEUTRAL,
+    INVINCIBLE
+}
+
 public class Breakable : MonoBehaviour {
-    protected static readonly Dictionary<string, List<string>> DAMAGE_TAGS
-        = new Dictionary<string, List<string>> {
-            {"AllyBreakable", new List<string> {"Enemy", "Neutral"}},
-            {"Enemy", new List<string> {"AllyDamage", "Neutral"}},
-            {"Neutral", new List<string> {"Ally", "Enemy", "Neutral"}},
-            {"Invincible", new List<string> {}}
+    protected static readonly Dictionary<LAYER, HashSet<LAYER>> DAMAGE_LAYERS
+        = new Dictionary<LAYER, HashSet<LAYER>> {
+            {LAYER.ALLY_BREAKABLE, new HashSet<LAYER> {LAYER.ENEMY, LAYER.NEUTRAL}},
+            {LAYER.ENEMY, new HashSet<LAYER> {LAYER.ALLY_DAMAGE, LAYER.NEUTRAL}},
+            {LAYER.NEUTRAL, new HashSet<LAYER> {LAYER.ALLY_DAMAGE, LAYER.ENEMY, LAYER.NEUTRAL}},
+            {LAYER.INVINCIBLE, new HashSet<LAYER> {}}
         };
 
     public float maxHitPoint;
@@ -28,7 +36,7 @@ public class Breakable : MonoBehaviour {
     }
 
     protected virtual void OnTriggerEnter2D (Collider2D col) {
-        if (DAMAGE_TAGS[tag].Contains(col.gameObject.tag)) {
+        if (DAMAGE_LAYERS[(LAYER)gameObject.layer].Contains((LAYER)col.gameObject.layer)) {
             Damage damage = col.gameObject.GetComponent<Damage>();
             if (damage != null) {
                 hitPoint -= defencePoint * damage.attackPoint;
