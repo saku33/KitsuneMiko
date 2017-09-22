@@ -1,15 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SkillManager : MonoBehaviour {
+    [System.NonSerialized]
     public float maxMagicPoint = 100.0f;
-    public float magicPoint = 100.0f;
+    [System.NonSerialized]
+    public float magicPoint;
+    [System.NonSerialized]
     public float recoveryAmount = 1.0f;
 
     Skill[] skillSlots = new Skill[3];
     bool isActive = false;
     float totalCost;
+
+    void Awake () {
+        magicPoint = maxMagicPoint;
+    }
 
     void Start () {
         // 空Skillをセット
@@ -18,7 +26,7 @@ public class SkillManager : MonoBehaviour {
     void FixedUpdate () {
         if (isActive) {
             magicPoint -= totalCost;
-            if (magicPoint <= 0) {
+            if (magicPoint <= 0.0f) {
                 Deactivate();
                 magicPoint = 0.0f;
             }
@@ -39,9 +47,7 @@ public class SkillManager : MonoBehaviour {
     }
 
     void UpdateTotalCost () {
-        foreach (Skill skill in skillSlots) {
-            totalCost += skill.cost;
-        }
+        totalCost = skillSlots.Sum(skill => skill.cost);
     }
 
     public void ReplaceSkill (int num, System.Type type) {
