@@ -9,5 +9,5 @@ public enum DAMAGE_ATTRIBUTE {
 
 public class Damage : MonoBehaviour {
     public float attackPoint;
-    public HashSet<DAMAGE_ATTRIBUTE> attribute = new HashSet<DAMAGE_ATTRIBUTE>();
+    public DAMAGE_ATTRIBUTE[] attribute;
 }

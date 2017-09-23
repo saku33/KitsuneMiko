@@ -30,7 +30,7 @@ public class Breakable : MonoBehaviour {
     }
 
     protected virtual void FixedUpdate () {
-        if (hitPoint <= 0) {
+        if (hitPoint <= 0.0f) {
             GetComponent<Death>().enabled = true;
         }
     }
