@@ -16,7 +16,7 @@ public abstract class Condition : MonoBehaviour {
      *  + ActionManagerは必要であればこのメソッドで
      *    イベントが発火しているか確認する
      */
-    public abstract ConditionState Check (object[] args);
+    public abstract ConditionState Check (string[] args);
 }
 
 /*  Condition.Checkメソッドの戻り値

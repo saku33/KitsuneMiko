@@ -197,6 +197,8 @@ public class ActionConfig {
 
     protected Dictionary<string, object> args = new Dictionary<string, object>();
 
+    public ActionConfig () {}
+
     public ActionConfig (
             string actionName,
             int order = 1,
@@ -251,14 +253,16 @@ public class ActionConfig {
 [System.Serializable]
 public class ConditionConfig {
     public string conditionName;
-    public object[] args = new object[0];
+    public string[] args = new string[0];
     public bool not = false;
 
     protected Condition condition;
 
+    public ConditionConfig () {}
+
     public ConditionConfig (
             string conditionName,
-            object[] args = null,
+            string[] args = null,
             bool not = false
         ) {
         this.conditionName = conditionName;
