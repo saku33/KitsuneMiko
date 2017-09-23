@@ -86,6 +86,10 @@ public class ActionManager : MonoBehaviour {
         SortActions();
     }
 
+    protected static bool IsClassOf (System.Type deriveType, System.Type baseType) {
+        return deriveType == baseType || deriveType.IsSubclassOf(baseType);
+    }
+
     /*  渡されたActionConfigのリストから実行不可のものを取り除くメソッド
      *  + 以下のものを取り除く
      *    - Action.enabled == false なもの
@@ -99,8 +103,8 @@ public class ActionManager : MonoBehaviour {
         List<ActionConfig> availableActions = new List<ActionConfig>();
         foreach (ActionConfig action in actions) {
             System.Type actionType = action.action.GetType();
-            if (!blockActionTypes.Any(
-                    type => actionType == type || actionType.IsSubclassOf(type))
+            if (action.action.enabled
+                && !blockActionTypes.Any(type => IsClassOf(actionType, type))
                 && action.IsAvailable()
             ) {
                 availableActions.Add(action);
@@ -179,30 +183,11 @@ public class ActionManager : MonoBehaviour {
 
 [System.Serializable]
 public class ActionConfig {
-    [System.Serializable]
-    public class ConditionConfig {
-        public bool not = false;
-        public string conditionName;
-
-        [System.NonSerialized]
-        public Condition condition;
-
-        public ConditionConfig (bool not, string conditionName) {
-            this.not = not;
-            this.conditionName = conditionName;
-        }
-
-        public virtual void Init (ActionManager manager) {
-            condition = manager.GetComponents<Condition>().First(
-                elm => elm.conditionName == conditionName);
-        }
-    }
-
     public string actionName;
     public int order = 1;
-    public ConditionConfig[] conditions;
+    public ConditionConfig[] conditions = new ConditionConfig[0];
     public int weight = 1;
-    public string[] blockActions;
+    public string[] blockActions = new string[0];
 
     [System.NonSerialized]
     public Action action;
@@ -212,20 +197,20 @@ public class ActionConfig {
     protected Dictionary<string, object> args = new Dictionary<string, object>();
 
     public ActionConfig (
-            string actionName, int order, int weight,
-            Dictionary<string, bool> conditions, string[] blockActions
+            string actionName,
+            int order = 1,
+            ConditionConfig[] conditions = null,
+            int weight = 1,
+            string[] blockActions = null
         ) {
         this.actionName = actionName;
         this.order = order;
+        if (conditions != null) {
+            this.conditions = conditions;
+        }
         this.weight = weight;
-        this.blockActions = blockActions;
-
-        int idx = 0;
-        int len = conditions.Count;
-        this.conditions = new ConditionConfig[len];
-        foreach (KeyValuePair<string, bool> condition in conditions) {
-            this.conditions[idx] = new ConditionConfig(condition.Value, condition.Key);
-            idx += 1;
+        if (blockActions != null) {
+            this.blockActions = blockActions;
         }
     }
 
@@ -236,7 +221,6 @@ public class ActionConfig {
         foreach (ConditionConfig condition in conditions) {
             condition.Init(manager);
         }
-
         int len = blockActions.Length;
         blockActionTypes = new System.Type[len];
         for (int i = 0; i < len; i++) {
@@ -246,18 +230,51 @@ public class ActionConfig {
 
     public virtual bool IsAvailable () {
         args.Clear();
-        ConditionState state;
         foreach (ConditionConfig condition in conditions) {
-            state = condition.condition.Check();
-            if (condition.not ? state.isSatisfied : !state.isSatisfied) {
+            ConditionState state = condition.Check();
+            if (!state.isSatisfied) {
                 return false;
             }
-            args = args.Union(state.args).ToDictionary(elm => elm.Key, elm => elm.Value);
+            foreach (KeyValuePair<string, object> arg in state.args) {
+                args[arg.Key] = arg.Value;
+            }
         }
         return true;
     }
 
     public virtual void Act () {
         action.Act(args);
+    }
+}
+
+[System.Serializable]
+public class ConditionConfig {
+    public string conditionName;
+    public object[] args = new object[0];
+    public bool not = false;
+
+    protected Condition condition;
+
+    public ConditionConfig (
+            string conditionName,
+            object[] args = null,
+            bool not = false
+        ) {
+        this.conditionName = conditionName;
+        this.not = not;
+        if (args != null) {
+            this.args = args;
+        }
+    }
+
+    public virtual void Init (ActionManager manager) {
+        condition = manager.GetComponents<Condition>().First(
+            elm => elm.conditionName == conditionName);
+    }
+
+    public virtual ConditionState Check () {
+        ConditionState state = condition.Check(args);
+        state.isSatisfied ^= not;
+        return state;
     }
 }

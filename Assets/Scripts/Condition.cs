@@ -18,7 +18,7 @@ public abstract class Condition : MonoBehaviour {
      *  + TODO
      *    - 引数を与えられるようにする予定
      */
-    public abstract ConditionState Check ();
+    public abstract ConditionState Check (object[] args);
 }
 
 /*  Condition.Checkメソッドの戻り値
@@ -26,6 +26,16 @@ public abstract class Condition : MonoBehaviour {
  *  + args: Action.Actに引数として渡す情報
  */
 public class ConditionState {
-    public bool isSatisfied;
+    public bool isSatisfied = false;
     public Dictionary<string, object> args = new Dictionary<string, object>();
+
+    public ConditionState (
+            bool isSatisfied = false,
+            Dictionary<string, object> args = null
+        ) {
+        this.isSatisfied = isSatisfied;
+        if (args != null) {
+            this.args = args;
+        }
+    }
 }
