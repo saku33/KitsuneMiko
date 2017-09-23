@@ -15,8 +15,6 @@ public abstract class Condition : MonoBehaviour {
     /*  Conditionを満たした際にイベントを発火するためのメソッド
      *  + ActionManagerは必要であればこのメソッドで
      *    イベントが発火しているか確認する
-     *  + TODO
-     *    - 引数を与えられるようにする予定
      */
     public abstract ConditionState Check (object[] args);
 }
