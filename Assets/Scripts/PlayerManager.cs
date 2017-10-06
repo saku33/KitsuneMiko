@@ -69,14 +69,32 @@ public class PlayerManager : MonoBehaviour
 
     private GameObject touchedOrb;  // 最後に触ったオーブ 初期値は null
 
+    // timer that holds animation playtime
+    private Timer timer;
+    // flag that enables player to input attack key
+    private bool isAttackKeyReceiving = true;
+    // if next attack is registered or not
+    private bool isNextAttackRegistered = false;
+    // counts of finished animations
+    private int finishedAttackNum = 0;
+    // number of next attack
+    private int nextAttackNum = 1;
+    private enum AttackNumber : int
+    {
+        Idle = 0, First, Second, Third, Fourth, Reset
+    }
+    private int[] AttackAnimationDuration = new int[4] { 6, 6, 6, 6 };
+
     void Start()
     {
         audioSource = gameManager.GetComponent<AudioSource>();
         rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        timer = gameObject.GetComponent<Timer>();
     }
     void Update()
     {
+
         //押しているボタンで分岐
         if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -117,83 +135,63 @@ public class PlayerManager : MonoBehaviour
             stateJump = 0;
         }
 
+        bool isAttackKeyPressed = isAttackKeyReceiving ? Input.GetKeyDown(KeyCode.C) : false;
 
-        bool oneFrameCKey = Input.GetKeyDown(KeyCode.C);//GetKeyDownはキーを1フレームだけ取得する
-
-
-        if (oneFrameCKey)//攻撃キーを押したときに攻撃カウントフラグをオン
+        // Attack Registration
+        if (isAttackKeyPressed && !isNextAttackRegistered)
         {
-            onAttackCount = true;
+            // 1st attack registration and implementation
+            if (finishedAttackNum == (int)AttackNumber.Idle && nextAttackNum == (int)AttackNumber.First)
+            {
+                animator.SetTrigger("attack");
+                timer.Begin();
+                nextAttackNum = (int)AttackNumber.Second;
+                Debug.Log("1 attack animation implemented");
+            }
+            // 2nd to 4th attack registration
+            else if ((int)AttackNumber.Second <= nextAttackNum && nextAttackNum <= (int)AttackNumber.Fourth)
+            {
+                if (timer.ElapsedTime * 12f < AttackAnimationDuration[nextAttackNum - 2])
+                {
+                    isAttackKeyReceiving = false;
+                    isNextAttackRegistered = true;
+                }
+            }
         }
 
-        // TODO: attackCount increases not constantly
-        if (onAttackCount)//攻撃カウントを増加
+        // Attack Implementation
+        if (1 < nextAttackNum && nextAttackNum < 5 && timer.ElapsedTime * 12f > AttackAnimationDuration[nextAttackNum - 2])
         {
-            attackCount++;
-        }
-
-        if (0 < attackCount && attackCount < 60)//時間内に
-        {
-            // 1フレームしか取得しないからattackNum = 1にしかならないのでは？
-            if (oneFrameCKey)
+            if (isNextAttackRegistered)
             {
-                if (attackNum < 3)
-                {
-                    attackNum++;
-                }
-
-            }
-
-            if (0 < attackCount && attackCount < 20)
-            {
-                Debug.Log("stateAttack==1");
-            }
-            else if (20 <= attackCount && attackCount < 40)
-            {
-                if (attackNum == 2 || attackNum == 3)
-                {
-                    Debug.Log("stateAttack==2");
-                }
-
-            }
-            else if (40 <= attackCount && attackCount < 60)
-            {
-                if (attackNum == 3)
-                {
-                    Debug.Log("stateAttack==3");
-                }
-            }
-            
-            //アニメーション用
-            if (attackNum == 1 && 0 < attackCount && attackCount < 20)
-            {
-
-            }
-            if (attackNum == 2 && 20 <= attackCount && attackCount < 40)
-            {
-
-
-            }
-            if (attackNum == 3 && 40 <= attackCount && attackCount < 60)
-            {
-
+                // implement next attack if next attack was already registered
+                finishedAttackNum += 1;
+                nextAttackNum += 1;
+                timer.Begin();
+                animator.SetTrigger("attack");
+                isAttackKeyReceiving = true;
+                isNextAttackRegistered = false;
+                Debug.Log((finishedAttackNum + 1) + " attack animation implemented");
             }
             else
             {
-                //何もしない
+                // implement sleep procedure to set up some settings
+                nextAttackNum = (int)AttackNumber.Reset;
+                timer.Begin();
+                isAttackKeyReceiving = false;
+                isNextAttackRegistered = false;
             }
         }
-        else
+
+        //when fourth attack animation finished
+        if (nextAttackNum == (int)AttackNumber.Reset && timer.ElapsedTime * 12f > 6f * 1.5f)
         {
-            attackNum = 0;
-            attackCount = 0;
-            onAttackCount = false;
+            isAttackKeyReceiving = true;
+            finishedAttackNum = 0;
+            nextAttackNum = 1;
         }
-
-
-
-
     }
+
     void FixedUpdate()
     {
 
